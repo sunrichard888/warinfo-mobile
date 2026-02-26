@@ -1,0 +1,24 @@
+{
+  "last_updated": "2026-02-26T14:30:00Z",
+  "conflict_data": {
+    "Ukraine": {"intensity": 95, "events_last_7days": 120, "type": "International War"},
+    "Israel": {"intensity": 90, "events_last_7days": 85, "type": "Regional Conflict"},
+    "Gaza": {"intensity": 92, "events_last_7days": 90, "type": "Regional Conflict"},
+    "Sudan": {"intensity": 85, "events_last_7days": 65, "type": "Civil War"},
+    "Myanmar": {"intensity": 80, "events_last_7days": 55, "type": "Civil War"},
+    "Syria": {"intensity": 75, "events_last_7days": 45, "type": "Ongoing Conflict"},
+    "Yemen": {"intensity": 70, "events_last_7days": 40, "type": "Civil War"},
+    "Afghanistan": {"intensity": 65, "events_last_7days": 35, "type": "Insurgency"},
+    "Somalia": {"intensity": 60, "events_last_7days": 30, "type": "Insurgency"},
+    "Nigeria": {"intensity": 55, "events_last_7days": 25, "type": "Terrorism"}
+  },
+  "recent_events": [
+    ["2026-02-25", "Ukraine", "Russian missile strike on Kyiv residential area", 12, 45],
+    ["2026-02-24", "Gaza", "Israeli airstrike on Rafah", 8, 23],
+    ["2026-02-23", "Sudan", "Armed clash in Khartoum", 15, 30],
+    ["2026-02-22", "Myanmar", "Military offensive in Rakhine State", 6, 18],
+    ["2026-02-21", "Israel", "Rocket attack from Lebanon", 2, 12],
+    ["2026-02-20", "Syria", "ISIS ambush in Deir ez-Zor", 9, 7],
+    ["2026-02-19", "Yemen", "Houthi drone attack on Saudi Arabia", 3, 15]
+  ]
+}

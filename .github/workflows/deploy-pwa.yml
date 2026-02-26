@@ -1,0 +1,34 @@
+name: Deploy WarInfo Mobile PWA
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          npm install -g http-server
+          
+      - name: Sync data from main warinfo project
+        run: |
+          # 这里会同步主项目的冲突数据
+          mkdir -p api
+          cp ../warinfo/conflict_data.json api/conflicts.json || echo "No data to sync"
+          
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages

@@ -1,0 +1,31 @@
+{
+  "name": "warinfo-mobile",
+  "version": "1.0.0",
+  "description": "Mobile PWA version of WarInfo - Global Conflict Heatmap",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -s",
+    "build": "echo 'PWA ready for deployment'",
+    "sync": "node scripts/sync-data.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sunrichard888/warinfo-mobile.git"
+  },
+  "keywords": [
+    "pwa",
+    "conflict",
+    "heatmap",
+    "mobile",
+    "warinfo"
+  ],
+  "author": "sunrichard888",
+  "license": "MIT",
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "leaflet-heat": "^0.2.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
