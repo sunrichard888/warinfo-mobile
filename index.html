@@ -232,6 +232,9 @@
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
     <script>
+        // Global map variable
+        let mapInstance = null;
+        
         // PWA Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -306,7 +309,7 @@
         
         function initMap(conflictData) {
             // Initialize Leaflet map with mobile optimizations
-            const map = L.map('map', {
+            mapInstance = L.map('map', {
                 zoomControl: false,
                 attributionControl: false
             }).setView([20, 0], 2);
@@ -316,16 +319,16 @@
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 maxZoom: 12, // Limit zoom for mobile performance
                 detectRetina: true
-            }).addTo(map);
+            }).addTo(mapInstance);
             
             // Add zoom controls optimized for mobile
             L.control.zoom({
                 position: 'bottomright'
-            }).addTo(map);
+            }).addTo(mapInstance);
             
             // Add heatmap layer if data available
             if (conflictData && Object.keys(conflictData).length > 0) {
-                addHeatmapLayer(map, conflictData);
+                addHeatmapLayer(mapInstance, conflictData);
             }
             
             // Hide loading message
@@ -404,10 +407,9 @@
             };
             
             const coords = countryCoordinates[country];
-            if (coords) {
-                // Fly to location on the actual map
-                const map = L.map('map');
-                map.flyTo(coords, 6);
+            if (coords && mapInstance) {
+                // Use the existing map instance
+                mapInstance.flyTo(coords, 6);
             }
         }
         
