@@ -15,6 +15,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="WarInfo">
     
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.css" />
+    
     <title>WarInfo Mobile - Global Conflict Monitor</title>
     
     <style>
@@ -223,6 +227,10 @@
         </div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
     <script>
         // PWA Registration
         if ('serviceWorker' in navigator) {
@@ -319,6 +327,9 @@
             if (conflictData && Object.keys(conflictData).length > 0) {
                 addHeatmapLayer(map, conflictData);
             }
+            
+            // Hide loading message
+            document.getElementById('map').innerHTML = '';
         }
         
         function addHeatmapLayer(map, conflictData) {
@@ -375,7 +386,7 @@
                 "Ukraine": [48.3794, 31.1656],
                 "Israel": [31.0461, 34.8516],
                 "Gaza": [31.3547, 34.3051],
-                "Sudand": [12.8628, 30.2176],
+                "Sudan": [12.8628, 30.2176],
                 "Myanmar": [21.9162, 95.9560],
                 "Syria": [34.8021, 38.9968],
                 "Yemen": [15.5527, 48.5164],
@@ -394,8 +405,9 @@
             
             const coords = countryCoordinates[country];
             if (coords) {
-                // In a real implementation, this would interact with the map
-                alert(`Navigating to ${country} (${coords[0]}, ${coords[1]})`);
+                // Fly to location on the actual map
+                const map = L.map('map');
+                map.flyTo(coords, 6);
             }
         }
         
