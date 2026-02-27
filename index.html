@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ff6b6b">
-    <title>WarInfo Mobile - TianDiTu Fixed</title>
+    <title>WarInfo Mobile - TianDiTu</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -12,91 +12,26 @@
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: #f8f9fa; 
-            color: #333; 
-            line-height: 1.6; 
-            overflow-x: hidden;
-            height: 100vh;
-            width: 100vw;
-        }
-        .app-container { 
-            height: 100vh; 
-            width: 100vw; 
-            display: flex; 
-            flex-direction: column; 
-        }
-        .header { 
-            background: linear-gradient(135deg, #ff6b6b, #ee5a52); 
-            color: white; 
-            padding: 16px 20px; 
-            text-align: center; 
-            z-index: 100; 
-        }
-        .header h1 { 
-            font-size: 1.4rem; 
-            font-weight: 600; 
-            margin-bottom: 4px; 
-        }
-        .map-container { 
-            flex: 1; 
-            min-height: 300px; 
-            position: relative; 
-            overflow: hidden; 
-        }
-        #map { 
-            width: 100%; 
-            height: 100%; 
-            min-height: 300px; 
-        }
-        .events-panel { 
-            background: white; 
-            border-top-left-radius: 20px; 
-            border-top-right-radius: 20px; 
-            padding: 20px; 
-            margin-top: -20px; 
-            position: relative; 
-            z-index: 10; 
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
-        }
-        .events-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 16px; 
-        }
-        .events-header h2 { 
-            font-size: 1.2rem; 
-            color: #333; 
-        }
-        .event-item { 
-            background: #f8f9fa; 
-            padding: 12px; 
-            margin-bottom: 12px; 
-            border-radius: 12px; 
-            border-left: 4px solid #ff6b6b; 
-        }
-        .event-date { 
-            font-weight: 600; 
-            color: #666; 
-            font-size: 0.9rem; 
-            margin-bottom: 4px; 
-        }
-        .event-country { 
-            color: #ff6b6b; 
-            font-weight: 600; 
-            margin-bottom: 4px; 
-        }
-        .event-desc { 
-            font-size: 0.9rem; 
-            color: #555; 
-            margin-bottom: 4px; 
-        }
-        .event-casualties { 
-            font-size: 0.85rem; 
-            color: #888; 
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #333; line-height: 1.6; overflow-x: hidden; }
+        .app-container { display: flex; flex-direction: column; height: 100vh; }
+        .header { background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white; padding: 16px 20px; text-align: center; position: relative; z-index: 100; }
+        .header h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 4px; }
+        .header p { font-size: 0.9rem; opacity: 0.9; }
+        .map-container { flex: 1; position: relative; }
+        #map { width: 100%; height: 100%; }
+        .events-panel { background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; margin-top: -20px; position: relative; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+        .events-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .events-header h2 { font-size: 1.2rem; color: #333; }
+        .refresh-btn { background: #ff6b6b; color: white; border: none; padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; cursor: pointer; }
+        .event-item { background: #f8f9fa; padding: 12px; margin-bottom: 12px; border-radius: 12px; border-left: 4px solid #ff6b6b; }
+        .event-date { font-weight: 600; color: #666; font-size: 0.9rem; margin-bottom: 4px; }
+        .event-country { color: #ff6b6b; font-weight: 600; margin-bottom: 4px; cursor: pointer; }
+        .event-desc { font-size: 0.9rem; color: #555; margin-bottom: 4px; }
+        .event-casualties { font-size: 0.85rem; color: #888; }
+        .source-link { display: inline-block; margin-top: 6px; color: #007bff; text-decoration: none; font-size: 0.85rem; }
+        .source-link:hover { text-decoration: underline; }
+        .loading { display: flex; justify-content: center; align-items: center; height: 100%; color: #666; }
+        .error-message { padding: 20px; text-align: center; color: #dc3545; background: #f8d7da; border-radius: 8px; margin: 10px; }
         @media (max-width: 480px) {
             .header { padding: 12px 16px; }
             .header h1 { font-size: 1.2rem; }
@@ -119,9 +54,10 @@
         <div class="events-panel">
             <div class="events-header">
                 <h2>Recent Conflicts</h2>
+                <button class="refresh-btn" onclick="refreshData()">Refresh</button>
             </div>
             <div id="eventsList">
-                <!-- Events will be loaded here -->
+                <p>Loading events...</p>
             </div>
         </div>
     </div>
@@ -132,6 +68,7 @@
 
     <script>
         let mapInstance = null;
+        let heatLayer = null;
         
         async function loadData() {
             try {
@@ -145,7 +82,7 @@
             } catch (error) {
                 console.error('Error loading data:', error);
                 document.getElementById('eventsList').innerHTML = 
-                    `<p>Failed to load data: ${error.message}</p>`;
+                    `<div class="error-message">Failed to load data: ${error.message}</div>`;
             }
         }
         
@@ -159,9 +96,10 @@
             const html = events.slice(0, 10).map(event => `
                 <div class="event-item">
                     <div class="event-date">${event[0]}</div>
-                    <div class="event-country">${event[1]}</div>
+                    <div class="event-country" onclick="jumpToLocation('${event[1]}')">${event[1]}</div>
                     <div class="event-desc">${event[2]}</div>
                     <div class="event-casualties">${event[3]} killed, ${event[4]} injured</div>
+                    <a href="#" class="source-link" onclick="openSource('${event[1]}'); return false;">Source: News</a>
                 </div>
             `).join('');
             
@@ -169,24 +107,22 @@
         }
         
         function initMap(conflictData) {
-            // 初始化地图，以全球视角为中心
+            // 初始化地图
             mapInstance = L.map('map', {
                 zoomControl: true,
                 attributionControl: true
             }).setView([20, 0], 2);
             
-            // 天地图矢量底图
+            // 添加天地图矢量底图
             L.tileLayer('https://t0.tianditu.gov.cn/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=62db4081b94d31299652cdcbb89f7865', {
-                attribution: '&copy; <a href="https://www.tianditu.gov.cn/">天地图</a>',
-                maxZoom: 12,
-                tileSize: 256
+                attribution: '© 天地图',
+                maxZoom: 18
             }).addTo(mapInstance);
             
-            // 天地图注记图层
+            // 添加天地图注记图层
             L.tileLayer('https://t0.tianditu.gov.cn/cva_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=62db4081b94d31299652cdcbb89f7865', {
-                attribution: '',
-                maxZoom: 12,
-                tileSize: 256
+                attribution: '© 天地图',
+                maxZoom: 18
             }).addTo(mapInstance);
             
             // 添加热力图
@@ -228,7 +164,7 @@
             });
             
             if (heatPoints.length > 0) {
-                L.heatLayer(heatPoints, {
+                heatLayer = L.heatLayer(heatPoints, {
                     radius: 25,
                     blur: 15,
                     maxZoom: 12,
@@ -239,9 +175,70 @@
                         1.0: '#ff0000'
                     }
                 }).addTo(map);
+                
+                console.log('Heatmap layer added with ' + heatPoints.length + ' points');
             }
         }
         
+        function jumpToLocation(country) {
+            const countryCoordinates = {
+                "Ukraine": [48.3794, 31.1656],
+                "Israel": [31.0461, 34.8516],
+                "Gaza": [31.3547, 34.3051],
+                "Sudan": [12.8628, 30.2176],
+                "Myanmar": [21.9162, 95.9560],
+                "Syria": [34.8021, 38.9968],
+                "Yemen": [15.5527, 48.5164],
+                "Afghanistan": [33.9391, 67.7100],
+                "Somalia": [5.1521, 46.1996],
+                "Nigeria": [9.0820, 8.6753],
+                "Colombia": [4.5709, -74.2973],
+                "Mexico": [23.6345, -102.5528],
+                "Haiti": [18.9712, -72.2852],
+                "Pakistan": [30.3753, 69.3451],
+                "India": [20.5937, 78.9629],
+                "Philippines": [12.8797, 121.7740],
+                "Russia": [61.5240, 105.3188],
+                "Turkey": [38.9637, 35.2433]
+            };
+            
+            const coords = countryCoordinates[country];
+            if (coords && mapInstance) {
+                mapInstance.flyTo(coords, 6);
+            }
+        }
+        
+        function openSource(country) {
+            const sources = {
+                "Ukraine": "https://www.reuters.com/world/europe/",
+                "Israel": "https://www.aljazeera.com/tag/israel/",
+                "Gaza": "https://www.bbc.com/news/middle_east",
+                "Sudan": "https://www.voanews.com/africa",
+                "Myanmar": "https://www.theguardian.com/world/myanmar",
+                "Syria": "https://www.cnn.com/middleeast",
+                "Yemen": "https://apnews.com/hub/yemen",
+                "Afghanistan": "https://www.washingtonpost.com/world/afghanistan/",
+                "Somalia": "https://www.bbc.com/news/world-africa",
+                "Nigeria": "https://www.premiumtimesng.com/",
+                "Colombia": "https://colombiareports.com/",
+                "Mexico": "https://mexiconewsdaily.com/",
+                "Haiti": "https://www.haitiantimes.com/",
+                "Pakistan": "https://www.dawn.com/",
+                "India": "https://timesofindia.indiatimes.com/",
+                "Philippines": "https://www.philstar.com/",
+                "Russia": "https://www.themoscowtimes.com/",
+                "Turkey": "https://www.hurriyetdailynews.com/"
+            };
+            
+            const url = sources[country] || "https://www.google.com/search?q=" + encodeURIComponent(country + " conflict news");
+            window.open(url, '_blank');
+        }
+        
+        function refreshData() {
+            loadData();
+        }
+        
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
         });
