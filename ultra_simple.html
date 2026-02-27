@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultra Simple Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-area { background: #f0f0f0; padding: 20px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>Ultra Simple Test</h1>
+    <div class="test-area" id="testArea">
+        Loading test data...
+    </div>
+
+    <script>
+        // 最简单的数据加载测试
+        fetch('conflict_data.json')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('testArea').innerHTML = 
+                    '<h3>Data loaded successfully!</h3>' +
+                    '<p>Ukraine intensity: ' + data.conflict_data.Ukraine.intensity + '</p>' +
+                    '<p>Recent events count: ' + data.recent_events.length + '</p>';
+            })
+            .catch(error => {
+                document.getElementById('testArea').innerHTML = 
+                    '<h3 style="color: red;">Data load failed: ' + error.message + '</h3>';
+            });
+    </script>
+</body>
+</html>
