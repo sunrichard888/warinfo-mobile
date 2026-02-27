@@ -1,10 +1,10 @@
 // Service Worker for WarInfo Mobile PWA
-const CACHE_NAME = 'warinfo-mobile-v1';
+const CACHE_NAME = 'warinfo-mobile-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/css/style.css',
   '/manifest.json',
+  '/conflict_data.json',
   // Leaflet CDN files
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
@@ -14,7 +14,12 @@ const urlsToCache = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
+      .then((cache) => {
+        return cache.addAll(urlsToCache).catch((err) => {
+          console.warn('Failed to cache some resources:', err);
+          // Continue installation even if some resources fail to cache
+        });
+      })
   );
 });
 
