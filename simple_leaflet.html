@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Leaflet Test</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 400px; width: 100%; }
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+    </style>
+</head>
+<body>
+    <h2>Simple Leaflet + Heatmap Test</h2>
+    <div id="status">Loading...</div>
+    <div id="map"></div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    
+    <script>
+        document.getElementById('status').innerHTML = 'Leaflet loaded, initializing map...';
+        
+        // Create basic map
+        const map = L.map('map').setView([20, 0], 2);
+        
+        // Add heatmap layer directly
+        const heatPoints = [
+            [48.3794, 31.1656, 0.95], // Ukraine
+            [31.0461, 34.8516, 0.90], // Israel  
+            [31.3547, 34.3051, 0.92], // Gaza
+            [12.8628, 30.2176, 0.85], // Sudan
+            [21.9162, 95.9560, 0.80]  // Myanmar
+        ];
+        
+        L.heatLayer(heatPoints, {
+            radius: 25,
+            blur: 15,
+            gradient: {
+                0.4: '#00ff00',
+                0.6: '#ffff00', 
+                0.8: '#ff8000',
+                1.0: '#ff0000'
+            }
+        }).addTo(map);
+        
+        document.getElementById('status').innerHTML = 'Map and heatmap initialized successfully!';
+    </script>
+</body>
+</html>
