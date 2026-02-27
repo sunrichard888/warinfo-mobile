@@ -167,6 +167,16 @@
             color: #666;
         }
         
+        /* Error display */
+        .error-message {
+            padding: 20px;
+            text-align: center;
+            color: #dc3545;
+            background: #f8d7da;
+            border-radius: 8px;
+            margin: 10px;
+        }
+        
         /* Offline indicator */
         .offline-indicator {
             position: fixed;
@@ -257,18 +267,22 @@
             offlineIndicator.style.display = 'block';
         });
         
-        // Load data from existing warinfo project
+        // Load data with proper path and enhanced error handling
         async function loadData() {
             try {
-                const response = await fetch('../warinfo/conflict_data.json');
+                // Fixed: Use correct path for GitHub Pages
+                const response = await fetch('conflict_data.json');
                 if (!response.ok) {
-                    throw new Error('Failed to load data');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
                 renderEvents(data.recent_events);
                 initMap(data.conflict_data);
             } catch (error) {
                 console.error('Error loading data:', error);
+                // Show error message to user
+                document.getElementById('eventsList').innerHTML = 
+                    `<div class="error-message">Failed to load data: ${error.message}. Please ensure conflict_data.json exists in the repository root.</div>`;
                 // Try to load from cache or show offline message
                 loadOfflineData();
             }
@@ -278,9 +292,11 @@
             // Load from localStorage or show cached data
             const cachedData = localStorage.getItem('warinfo_recent_events');
             if (cachedData) {
-                renderEvents(JSON.parse(cachedData));
-            } else {
-                document.getElementById('eventsList').innerHTML = '<p>No data available. Please check your connection.</p>';
+                try {
+                    renderEvents(JSON.parse(cachedData));
+                } catch (e) {
+                    console.error('Failed to parse cached data:', e);
+                }
             }
         }
         
