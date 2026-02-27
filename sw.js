@@ -1,36 +1,56 @@
-// Service Worker for WarInfo Mobile PWA
+// Simple Service Worker for WarInfo Mobile PWA
 const CACHE_NAME = 'warinfo-mobile-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/conflict_data.json',
-  // Leaflet CDN files
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-  'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js'
+  './',
+  './index.html',
+  './manifest.json',
+  './conflict_data.json'
 ];
 
 self.addEventListener('install', (event) => {
+  // Skip waiting to activate immediately
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         return cache.addAll(urlsToCache).catch((err) => {
-          console.warn('Failed to cache some resources:', err);
-          // Continue installation even if some resources fail to cache
+          console.warn('Cache addAll failed:', err);
         });
       })
   );
 });
 
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
+  // Only handle same-origin requests
+  if (event.request.url.startsWith(self.location.origin)) {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          if (response) {
+            return response;
+          }
+          return fetch(event.request).catch(() => {
+            // Return cached version if available
+            return caches.match(event.request);
+          });
+        })
+    );
+  }
+});
+
+self.addEventListener('activate', (event) => {
+  // Clean up old caches
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });

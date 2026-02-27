@@ -10,11 +10,6 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     
-    <!-- iOS Safari -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="WarInfo">
-    
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.css" />
@@ -177,34 +172,6 @@
             margin: 10px;
         }
         
-        /* Debug info */
-        .debug-info {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 10px;
-            z-index: 1000;
-            display: none;
-        }
-        
-        /* Offline indicator */
-        .offline-indicator {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: #dc3545;
-            color: white;
-            text-align: center;
-            padding: 8px;
-            z-index: 1000;
-            display: none;
-        }
-        
         /* Responsive adjustments */
         @media (max-width: 480px) {
             .header {
@@ -226,11 +193,6 @@
     </style>
 </head>
 <body>
-    <div class="offline-indicator" id="offlineIndicator">
-        Offline mode - showing cached data
-    </div>
-    <div class="debug-info" id="debugInfo"></div>
-    
     <div class="app-container">
         <div class="header">
             <h1>WarInfo Mobile</h1>
@@ -260,75 +222,29 @@
         // Global map variable
         let mapInstance = null;
         
-        // Debug function
-        function debugLog(message) {
-            console.log('[WarInfo Debug]:', message);
-            const debugEl = document.getElementById('debugInfo');
-            if (debugEl) {
-                debugEl.style.display = 'block';
-                debugEl.textContent = message;
-            }
-        }
-        
-        // PWA Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        debugLog('SW registered successfully');
-                    })
-                    .catch(registrationError => {
-                        debugLog('SW registration failed: ' + registrationError);
-                    });
-            });
-        }
-        
-        // Check online status
-        const offlineIndicator = document.getElementById('offlineIndicator');
-        window.addEventListener('online', () => {
-            offlineIndicator.style.display = 'none';
-        });
-        window.addEventListener('offline', () => {
-            offlineIndicator.style.display = 'block';
-        });
-        
-        // Load data with proper path and enhanced error handling
+        // Load data with proper path and error handling
         async function loadData() {
             try {
-                debugLog('Starting data load...');
-                // Fixed: Use correct path for GitHub Pages
                 const response = await fetch('conflict_data.json');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                debugLog('Data loaded successfully, rendering events and map...');
                 renderEvents(data.recent_events);
                 initMap(data.conflict_data);
             } catch (error) {
                 console.error('Error loading data:', error);
-                debugLog('Data load error: ' + error.message);
-                // Show error message to user
                 document.getElementById('eventsList').innerHTML = 
-                    `<div class="error-message">Failed to load data: ${error.message}. Please ensure conflict_data.json exists in the repository root.</div>`;
-                // Try to load from cache or show offline message
-                loadOfflineData();
-            }
-        }
-        
-        function loadOfflineData() {
-            // Load from localStorage or show cached data
-            const cachedData = localStorage.getItem('warinfo_recent_events');
-            if (cachedData) {
-                try {
-                    renderEvents(JSON.parse(cachedData));
-                    debugLog('Loaded data from cache');
-                } catch (e) {
-                    console.error('Failed to parse cached data:', e);
-                    debugLog('Cache parse error: ' + e.message);
+                    `<div class="error-message">Failed to load data: ${error.message}</div>`;
+                // Try to load from cache
+                const cachedData = localStorage.getItem('warinfo_recent_events');
+                if (cachedData) {
+                    try {
+                        renderEvents(JSON.parse(cachedData));
+                    } catch (e) {
+                        console.error('Failed to parse cached data:', e);
+                    }
                 }
-            } else {
-                debugLog('No cached data available');
             }
         }
         
@@ -353,100 +269,79 @@
             `).join('');
             
             eventsList.innerHTML = html;
-            debugLog('Events rendered successfully');
         }
         
         function initMap(conflictData) {
             try {
-                // Initialize Leaflet map with mobile optimizations
+                // Initialize Leaflet map
                 mapInstance = L.map('map', {
-                    zoomControl: false,
-                    attributionControl: false
+                    zoomControl: true,
+                    attributionControl: true
                 }).setView([20, 0], 2);
                 
-                // Add mobile-friendly tile layer
+                // Add tile layer
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                    maxZoom: 12, // Limit zoom for mobile performance
-                    detectRetina: true
-                }).addTo(mapInstance);
-                
-                // Add zoom controls optimized for mobile
-                L.control.zoom({
-                    position: 'bottomright'
+                    maxZoom: 12
                 }).addTo(mapInstance);
                 
                 // Add heatmap layer if data available
                 if (conflictData && Object.keys(conflictData).length > 0) {
                     addHeatmapLayer(mapInstance, conflictData);
-                    debugLog('Map and heatmap initialized successfully');
-                } else {
-                    debugLog('No conflict data for heatmap');
                 }
                 
                 // Hide loading message
                 document.getElementById('map').innerHTML = '';
             } catch (error) {
                 console.error('Error initializing map:', error);
-                debugLog('Map init error: ' + error.message);
                 document.getElementById('map').innerHTML = '<div class="error-message">Failed to initialize map: ' + error.message + '</div>';
             }
         }
         
         function addHeatmapLayer(map, conflictData) {
-            try {
-                // Convert conflict data to heatmap points
-                const heatPoints = [];
-                const countryCoordinates = {
-                    "Ukraine": [48.3794, 31.1656],
-                    "Israel": [31.0461, 34.8516],
-                    "Gaza": [31.3547, 34.3051],
-                    "Sudan": [12.8628, 30.2176],
-                    "Myanmar": [21.9162, 95.9560],
-                    "Syria": [34.8021, 38.9968],
-                    "Yemen": [15.5527, 48.5164],
-                    "Afghanistan": [33.9391, 67.7100],
-                    "Somalia": [5.1521, 46.1996],
-                    "Nigeria": [9.0820, 8.6753],
-                    "Colombia": [4.5709, -74.2973],
-                    "Mexico": [23.6345, -102.5528],
-                    "Haiti": [18.9712, -72.2852],
-                    "Pakistan": [30.3753, 69.3451],
-                    "India": [20.5937, 78.9629],
-                    "Philippines": [12.8797, 121.7740],
-                    "Russia": [61.5240, 105.3188],
-                    "Turkey": [38.9637, 35.2433]
-                };
-                
-                Object.entries(conflictData).forEach(([country, data]) => {
-                    const coords = countryCoordinates[country];
-                    if (coords) {
-                        const intensity = data.intensity || 0;
-                        // Scale intensity to heatmap weight (0-1)
-                        const weight = Math.min(intensity / 100, 1);
-                        heatPoints.push([...coords, weight]);
-                    }
-                });
-                
-                if (heatPoints.length > 0) {
-                    const heatLayer = L.heatLayer(heatPoints, {
-                        radius: 25,
-                        blur: 15,
-                        maxZoom: 12,
-                        gradient: {
-                            0.4: '#00ff00',
-                            0.6: '#ffff00', 
-                            0.8: '#ff8000',
-                            1.0: '#ff0000'
-                        }
-                    }).addTo(map);
-                    debugLog('Heatmap layer added with ' + heatPoints.length + ' points');
-                } else {
-                    debugLog('No valid heatmap points to add');
+            const heatPoints = [];
+            const countryCoordinates = {
+                "Ukraine": [48.3794, 31.1656],
+                "Israel": [31.0461, 34.8516],
+                "Gaza": [31.3547, 34.3051],
+                "Sudan": [12.8628, 30.2176],
+                "Myanmar": [21.9162, 95.9560],
+                "Syria": [34.8021, 38.9968],
+                "Yemen": [15.5527, 48.5164],
+                "Afghanistan": [33.9391, 67.7100],
+                "Somalia": [5.1521, 46.1996],
+                "Nigeria": [9.0820, 8.6753],
+                "Colombia": [4.5709, -74.2973],
+                "Mexico": [23.6345, -102.5528],
+                "Haiti": [18.9712, -72.2852],
+                "Pakistan": [30.3753, 69.3451],
+                "India": [20.5937, 78.9629],
+                "Philippines": [12.8797, 121.7740],
+                "Russia": [61.5240, 105.3188],
+                "Turkey": [38.9637, 35.2433]
+            };
+            
+            Object.entries(conflictData).forEach(([country, data]) => {
+                const coords = countryCoordinates[country];
+                if (coords) {
+                    const intensity = data.intensity || 0;
+                    const weight = Math.min(intensity / 100, 1);
+                    heatPoints.push([...coords, weight]);
                 }
-            } catch (error) {
-                console.error('Error adding heatmap layer:', error);
-                debugLog('Heatmap error: ' + error.message);
+            });
+            
+            if (heatPoints.length > 0) {
+                L.heatLayer(heatPoints, {
+                    radius: 25,
+                    blur: 15,
+                    maxZoom: 12,
+                    gradient: {
+                        0.4: '#00ff00',
+                        0.6: '#ffff00', 
+                        0.8: '#ff8000',
+                        1.0: '#ff0000'
+                    }
+                }).addTo(map);
             }
         }
         
@@ -474,7 +369,6 @@
             
             const coords = countryCoordinates[country];
             if (coords && mapInstance) {
-                // Use the existing map instance
                 mapInstance.flyTo(coords, 6);
             }
         }
@@ -511,7 +405,6 @@
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
-            debugLog('Page loaded, starting data load...');
             loadData();
         });
     </script>
