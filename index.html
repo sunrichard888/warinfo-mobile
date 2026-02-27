@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ff6b6b">
-    <title>WarInfo Mobile - Offline Mode</title>
+    <title>WarInfo Mobile - TianDiTu Map</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -20,7 +20,7 @@
         #map { width: 100%; height: 100%; min-height: 300px; }
         .loading { display: flex; justify-content: center; align-items: center; height: 100%; color: #666; }
         .error-message { padding: 20px; text-align: center; color: #dc3545; background: #f8d7da; border-radius: 8px; margin: 10px; }
-        .offline-notice { 
+        .tianditu-notice { 
             position: absolute; 
             top: 10px; 
             right: 10px; 
@@ -36,13 +36,13 @@
 <body>
     <div class="app-container">
         <div class="header">
-            <h1>WarInfo Offline</h1>
-            <p>Heatmap Only Mode</p>
+            <h1>WarInfo TianDiTu</h1>
+            <p>Global Conflict Heatmap</p>
         </div>
         
         <div class="map-container">
-            <div id="map" class="loading">Loading heatmap...</div>
-            <div class="offline-notice">Offline Map Mode</div>
+            <div id="map" class="loading">Loading map...</div>
+            <div class="tianditu-notice">TianDiTu Map</div>
         </div>
     </div>
 
@@ -52,6 +52,7 @@
 
     <script>
         let mapInstance = null;
+        const TIANDITU_KEY = '62db4081b94d31299652cdcbb89f7865';
         
         async function loadData() {
             try {
@@ -69,17 +70,29 @@
         }
         
         function initMap(conflictData) {
-            // 初始化地图，但不加载瓦片层
+            // 初始化地图
             mapInstance = L.map('map', {
                 zoomControl: true,
-                attributionControl: false,
-                // 设置世界范围
-                minZoom: 1,
-                maxZoom: 6
+                attributionControl: true,
+                minZoom: 2,
+                maxZoom: 12
             }).setView([20, 0], 2);
             
-            // 使用纯色背景，不加载外部瓦片
-            // 地图容器已经有背景色 #e9ecef
+            // 天地图矢量底图
+            L.tileLayer('https://t0.tianditu.gov.cn/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=' + TIANDITU_KEY, {
+                attribution: '© 天地图',
+                maxZoom: 12,
+                tileSize: 256,
+                detectRetina: true
+            }).addTo(mapInstance);
+            
+            // 天地图注记图层（叠加在矢量图上）
+            L.tileLayer('https://t0.tianditu.gov.cn/cva_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=' + TIANDITU_KEY, {
+                attribution: '© 天地图',
+                maxZoom: 12,
+                tileSize: 256,
+                detectRetina: true
+            }).addTo(mapInstance);
             
             if (conflictData && Object.keys(conflictData).length > 0) {
                 addHeatmapLayer(mapInstance, conflictData);
@@ -124,7 +137,7 @@
                 L.heatLayer(heatPoints, {
                     radius: 25,
                     blur: 15,
-                    maxZoom: 6,
+                    maxZoom: 12,
                     gradient: {
                         0.4: '#00ff00',
                         0.6: '#ffff00', 
