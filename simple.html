@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WarInfo Simple Test</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 400px; }
+        body { font-family: Arial, sans-serif; }
+    </style>
+</head>
+<body>
+    <h1>WarInfo Simple Test</h1>
+    <div id="status">Loading...</div>
+    <div id="map"></div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Simple test - load data and show map
+        fetch('conflict_data.json')
+            .then(response => {
+                if (!response.ok) throw new Error('Data load failed');
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('status').textContent = 'Data loaded successfully!';
+                console.log('Data:', data);
+                
+                // Initialize map
+                const map = L.map('map').setView([20, 0], 2);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                
+                // Add simple markers for testing
+                if (data.conflict_data) {
+                    const coords = {
+                        "Ukraine": [48.3794, 31.1656],
+                        "Israel": [31.0461, 34.8516],
+                        "Gaza": [31.3547, 34.3051]
+                    };
+                    
+                    Object.entries(coords).forEach(([country, latlng]) => {
+                        if (data.conflict_data[country]) {
+                            L.marker(latlng).addTo(map)
+                                .bindPopup(`${country}: ${data.conflict_data[country].intensity}`);
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                document.getElementById('status').textContent = 'Error: ' + error.message;
+                console.error('Error:', error);
+            });
+    </script>
+</body>
+</html>
